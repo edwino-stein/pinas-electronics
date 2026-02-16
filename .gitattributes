@@ -1,0 +1,2 @@
+# Enforce UTF-8 encoding and LF as line endings to all text files
+* text=auto eol=lf work-tree-encoding=UTF-8
