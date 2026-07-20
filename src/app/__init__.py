@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .state import app as app_state
 
-_SERVICES = []
+_SERVICES = ['app.service.drive_monitoring']
 
 async def _start(args: argparse.Namespace) -> int:
     logger = logging.getLogger(__name__)

@@ -1,31 +1,45 @@
-from collections.abc import Iterable, Iterator
 from pathlib import Path
+from collections.abc import Iterator
+from dataclasses import dataclass
+from telemetry.smart import DriveInterface, DriveType, DriveSmartStatus
 
-from telemetry import smart
-from ..model import DriveState
+@dataclass(frozen=True)
+class DriveState:
+    device_path: Path
+    family: str
+    model: str
+    serial_number: str
+    interface: DriveInterface
+    type: DriveType
+    health_status: DriveSmartStatus
+    temperature: int
 
-_DRIVES_STATE: set[DriveState] = set()
+_DRIVES_STATE: dict[str, DriveState] = dict()
 
-def _make_drive_state_from_drive_handle(dev_object: smart.DriveHandle) -> DriveState:
-    drive_info = dev_object.info
-    drive_attrs = dev_object.attributes
-    return DriveState(device_path=Path(dev_object.os_reference),
-                      family=drive_info.family,
-                      model=drive_info.model,
-                      serial_number=drive_info.serial_number,
-                      interface=drive_info.interface,
-                      type=drive_info.type,
-                      health_status=dev_object.health_status,
-                      temperature=next(map(lambda a: a.raw,
-                                           filter(lambda a: a.field == smart.DriveSmartAttibuteField.TEMPERATURE_CELSIUS_194,
-                                                  drive_attrs)), 0))
 
-def update_drives_state(drive_objects: Iterable[smart.DriveHandle]):
+def update_drive_state(device_path: str,
+                       family: str,
+                       model: str,
+                       serial_number: str,
+                       interface: DriveInterface,
+                       type: DriveType,
+                       health_status: DriveSmartStatus,
+                       temperature: int):
     global _DRIVES_STATE
-    _DRIVES_STATE = set(map(_make_drive_state_from_drive_handle, drive_objects))
+    _DRIVES_STATE[device_path] = DriveState(device_path=Path(device_path),
+                                            family=family,
+                                            model=model,
+                                            serial_number=serial_number,
+                                            interface=interface,
+                                            type=type,
+                                            health_status=health_status,
+                                            temperature=temperature)
+
+def drive(device_path: str) -> DriveState:
+    return _DRIVES_STATE[device_path]
 
 def total_drives() -> int:
     return len(_DRIVES_STATE)
 
 def iter_drives_state() -> Iterator[DriveState]:
-    return iter(_DRIVES_STATE)
+    return iter(_DRIVES_STATE.values())

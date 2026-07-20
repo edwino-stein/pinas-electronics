@@ -1,7 +1,9 @@
 from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import StrEnum, Enum
-from pySMART import DeviceList, Device, Attribute
+from pySMART import DeviceList, Device, Attribute, SMARTCTL
+
+# TODO: Improve to reduce the number of syscalls
 
 class DriveSmartStatus(StrEnum):
 
@@ -180,3 +182,6 @@ def query_drive_by_interface(interface: DriveInterface) -> Iterator[DriveHandle]
 def query_drive_by_type(drive_type: DriveType) -> Iterator[DriveInfo]:
     devices = filter(lambda d: DriveType.make_from_pysmart_device(d) == drive_type, _scan_pysmart_devices())
     return map(DriveHandle.make_from_pysmart_device, devices)
+
+def init():
+    SMARTCTL.sudo = True
