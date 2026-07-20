@@ -4,7 +4,11 @@ import logging
 import signal
 import typing
 import importlib
+import configparser
 import RPi.GPIO as GPIO
+from pathlib import Path
+
+from .state import app as app_state
 
 _SERVICES = []
 
@@ -57,12 +61,41 @@ def _on_sigint():
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    return argparse.Namespace()
+    parser = argparse.ArgumentParser(prog='pinas-electronics', description='PINAS eletronics controller.')
+
+    parser.add_argument('work_dir', type=Path, help='Work directory') 
+    parser.add_argument('-f',
+                        dest='config_file',
+                        type=Path,
+                        default=Path('config.ini'),
+                        help='Configuration file, relative to given work directory.')
+    
+    parser.add_argument('-v', '--verbose', action="store_true", help='Enable detailed logging.')
+
+    return parser.parse_args(argv)
 
 
 def main(args: argparse.Namespace) -> int:
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)6s [%(name)-15s] %(message)s')
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+                        format='%(asctime)s %(levelname)6s [%(name)-30s] %(message)s')
     logger = logging.getLogger(__name__)
+
+    app_state._set_work_dir_and_config_file(args.work_dir, args.config_file)
+
+    if not app_state.WORK_DIR.is_dir():
+        logger.error('Invalid work directory: It is not a directory.')
+        return 1
+
+    if not app_state.CONFIG_FILE.is_file():
+        logger.error('Invalid configuration file: File does not exist.')
+        return 1
+
+    logger.debug('Using work directory: %s', app_state.WORK_DIR)
+    logger.debug('Parsing config file: %s', app_state.CONFIG_FILE)
+
+    config = configparser.ConfigParser()
+    config.read(app_state.CONFIG_FILE)
+    app_state._set_config(config)
 
     logger.debug('GPIO set to BCM mode.')
     GPIO.setmode(GPIO.BCM)
