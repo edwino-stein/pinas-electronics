@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 _TACHOMETER: tachometer.Tachometer = typing.cast(tachometer.Tachometer, None)
 _FAN: fan.Fan = typing.cast(fan.Fan, None)
 _LOOP: bool = False
-_POLLING_INTERVAL: float = 5
+_POLLING_INTERVAL: float = 1
 
 async def setup():
     global _TACHOMETER, _FAN
@@ -69,11 +69,11 @@ async def start():
     logger.info('Starting tachometer...')
     for i in range(0, 10):
         try:
-            await asyncio.to_thread(_TACHOMETER.start)
+            _TACHOMETER.start()
             break
         except:
             logger.warning('Fail to start tachometer! Trying again (%d/10)...', i+1)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
 
     logger.info('Starting fan...')
     _FAN.start(0.0)
@@ -107,5 +107,5 @@ async def stop():
 
 
 def set_fan_power(fan_power: float):
-    logger.info('Fan power set to %.2f%%', fan_power)
+    logger.info('Fan power set to %.2f%%', fan_power * 100)
     if _FAN is not None: _FAN.speed = fan_power

@@ -21,6 +21,10 @@ class Tachometer:
         self._pulse_counter += 1
 
     def start(self):
+        # For some reason, sometimes the GPIO fails to attach an event handler to the digital input pin,
+        # and it seems to help to remove any event (even not previously defined) of the pin before try
+        # to add a new event handle.
+        GPIO.remove_event_detect(self._pin)
         GPIO.add_event_detect(self._pin, GPIO.FALLING, self._on_pin_fell)
 
     def stop(self):
