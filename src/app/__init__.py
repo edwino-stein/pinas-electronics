@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .state import app as app_state
 
-_SERVICES = ['app.service.drive_monitoring', 'app.service.fan_control']
+_SERVICES = ['app.service.drive_monitoring', 'app.service.fan_control', 'app.service.temperature_control']
 
 async def _start(args: argparse.Namespace) -> int:
     logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(args: argparse.Namespace) -> int:
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format='%(asctime)s %(levelname)6s [%(name)-30s] %(message)s')
+                        format='%(asctime)s %(levelname)6s [%(name)-31s] %(message)s')
     logger = logging.getLogger(__name__)
 
     app_state._set_work_dir_and_config_file(args.work_dir, args.config_file)
